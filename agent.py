@@ -5,23 +5,16 @@ TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
-# Get latest jobs from Reddit
-reddit_response = requests.get(
-    "https://www.reddit.com/r/forhire/new.json?limit=5",
-    headers={"User-Agent": "Mozilla/5.0"},
-    timeout=30
-)
+jobs = [
+    {
+        "title": "Python Developer Needed for SaaS Project",
+        "description": "Need an experienced Python developer to build API integrations and automation."
+    }
+]
 
-print("STATUS:", reddit_response.status_code)
-print(reddit_response.text[:500])
-
-reddit = reddit_response.json()
-
-posts = reddit["data"]["children"][:5]
-
-for post in posts:
-    title = post["data"]["title"]
-    text = post["data"].get("selftext", "")
+for job in jobs:
+    title = job["title"]
+    text = job["description"]
 
     prompt = f"""
 Score this freelance opportunity from 1-10.
@@ -30,9 +23,8 @@ Return ONLY a number.
 Title: {title}
 
 Description:
-{text[:1000]}
+{text}
 """
-
     gemini = requests.post(
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
         json={
