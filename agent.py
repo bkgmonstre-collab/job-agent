@@ -38,7 +38,13 @@ Description:
         }
     ).json()
 
-    score = gemini["candidates"][0]["content"]["parts"][0]["text"]
+    print("Gemini Response:")
+print(gemini)
+
+if "candidates" not in gemini:
+    raise Exception(f"Gemini Error: {gemini}")
+
+score = gemini["candidates"][0]["content"]["parts"][0]["text"]
 
     if int(score.strip()) >= 7:
         message = f"""
