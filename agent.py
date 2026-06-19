@@ -6,10 +6,16 @@ TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
 # Get latest jobs from Reddit
-reddit = requests.get(
-    "https://www.reddit.com/r/forhire/new.json",
-    headers={"User-Agent": "JobAgent/1.0"}
-).json()
+reddit_response = requests.get(
+    "https://www.reddit.com/r/forhire/new.json?limit=5",
+    headers={"User-Agent": "Mozilla/5.0"},
+    timeout=30
+)
+
+print("STATUS:", reddit_response.status_code)
+print(reddit_response.text[:500])
+
+reddit = reddit_response.json()
 
 posts = reddit["data"]["children"][:5]
 
