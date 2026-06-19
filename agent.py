@@ -1,19 +1,62 @@
 import os
 import requests
 
-BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
-CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
+TELEGRAM_BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
+TELEGRAM_CHAT_ID = os.environ["TELEGRAM_CHAT_ID"]
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
 
-message = "🚀 Job Agent is online and running from GitHub Actions."
+# Get latest jobs from Reddit
+reddit = requests.get(
+    "https://www.reddit.com/r/forhire/new.json",
+    headers={"User-Agent": "JobAgent/1.0"}
+).json()
 
-url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+posts = reddit["data"]["children"][:5]
 
-requests.post(
-    url,
-    json={
-        "chat_id": CHAT_ID,
-        "text": message
-    }
-)
+for post in posts:
+    title = post["data"]["title"]
+    text = post["data"].get("selftext", "")
 
-print("Message sent.")
+    prompt = f"""
+Score this freelance opportunity from 1-10.
+Return ONLY a number.
+
+Title: {title}
+
+Description:
+{text[:1000]}
+"""
+
+    gemini = requests.post(
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
+        json={
+            "contents": [
+                {
+                    "parts": [
+                        {"text": prompt}
+                    ]
+                }
+            ]
+        }
+    ).json()
+
+    score = gemini["candidates"][0]["content"]["parts"][0]["text"]
+
+    if int(score.strip()) >= 7:
+        message = f"""
+🔥 New Opportunity
+
+Title:
+{title}
+
+Score:
+{score}/10
+"""
+
+        requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={
+                "chat_id": TELEGRAM_CHAT_ID,
+                "text": message
+            }
+        )
