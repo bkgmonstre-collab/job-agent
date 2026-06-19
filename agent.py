@@ -25,6 +25,7 @@ Title: {title}
 Description:
 {text}
 """
+
     gemini = requests.post(
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}",
         json={
@@ -39,14 +40,14 @@ Description:
     ).json()
 
     print("Gemini Response:")
-print(gemini)
+    print(gemini)
 
-if "candidates" not in gemini:
-    raise Exception(f"Gemini Error: {gemini}")
+    if "candidates" not in gemini:
+        raise Exception(f"Gemini Error: {gemini}")
 
-score = gemini["candidates"][0]["content"]["parts"][0]["text"]
+    score = gemini["candidates"][0]["content"]["parts"][0]["text"].strip()
 
-    if int(score.strip()) >= 7:
+    if int(score) >= 7:
         message = f"""
 🔥 New Opportunity
 
@@ -64,3 +65,5 @@ Score:
                 "text": message
             }
         )
+
+print("Agent finished successfully.")
